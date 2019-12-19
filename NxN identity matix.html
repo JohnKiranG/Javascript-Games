@@ -1,0 +1,95 @@
+<html>
+<body>
+<div style="white-space:nowrap">
+<p>
+N X N Identity Matrix
+</p>
+<input id="row" type="text" placeholder="Enter Rows">
+<input id="col" type="text" placeholder="Enter Columns">
+<button id="btn">
+Check
+</button>
+</div>
+<p id='result'>
+
+</p>
+
+<script>
+let row=document.getElementById("row");
+let column=document.getElementById("col");
+let rowNumber,colNumber;
+let para=document.getElementById("result");
+let btn=document.getElementById("btn");
+
+btn.addEventListener("click",verify);
+function verify() {
+	para.innerHTML="";
+	rowNumber=row.value;
+  colNumber=column.value;
+  if(rowNumber==colNumber) {
+  	createArray(rowNumber);
+  } else {
+  	para.innerHTML="Please enter equal rows and columns";
+  }
+}
+
+
+ function createArray(rowNumber) {
+	let arr=[rowNumber*rowNumber];  
+  let count=0;
+  for(let i=0;i<rowNumber*rowNumber;i++) {
+      if(i==(rowNumber*count+count)) {
+        arr[i]=1;
+        count++;
+      } else {
+        arr[i]=0;
+      }   
+  }
+  printArray(arr);
+}
+
+function printArray(arr) {
+	let count=1;
+	for(let i=0;i<rowNumber*rowNumber;i++) { 
+  	if(i==(rowNumber*count-1)) {
+    	para.innerHTML+=arr[i]+"<br>";
+      count++;
+    } else {
+    	para.innerHTML+=arr[i]+" ";
+    }
+  }
+}
+
+//tried using 2d array but has a problem
+// function createArray(rowNumber) {
+//   let arr = [[3][3]];
+//   for (let i = 0; i < rowNumber; i++) {
+//     for (let j = 0; j < rowNumber; j++) {
+//       if (i == j) {
+//         ; debugger
+//         arr[i][i] = 1;
+//       } else {
+//         arr[i][i] = 0;
+//       }
+//     }
+//   }
+//   printArray(arr);
+// }
+
+// function printArray(arr) {
+//   for (let i = 0; i < rowNumber; i++) {
+//     for (let j = 0; j < rowNumber; j++) {
+//       if (j == rowNumber - 1) {
+//         para.innerHTML += arr[i][j] + "<br>";
+
+//       } else {
+//         para.innerHTML += arr[i][j] + " ";
+//       }
+
+//     }
+//   }
+// }  
+
+</script>
+</body>
+<html>

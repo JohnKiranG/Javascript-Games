@@ -1,0 +1,115 @@
+<p>Guess a number between 1 and 10</p>
+<p id="atmpt">
+
+</p>
+<form id="iptForm">
+  <input id="userInput"type="text" name="number" >
+  <button id="btn">Submit</button>
+</form>
+<p id="para">
+
+</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h1>Number-guessing</h1>
+<ul>
+<li>Write the <code>init</code> function to set up an event listener on the form. The event listener should pass the value of the input element to the <code>check</code> function.</li>
+<li>Write the <code>check</code> function to accept a value from the event listener and check it against the <code>targetNumber</code>.
+<ul>
+<li>If the values match, call the <code>showWin</code> function</li>
+<li>If the values do not match, call the <code>showError</code> function.</li>
+<li>If the values do not match, and the player has made more than five guesses, call the <code>showLoss</code> function.</li>
+</ul>
+</li>
+<li>Write the <code>showWin</code> function to remove the form and any error message, and show a message telling the player they win.</li>
+<li>Write the <code>showError</code> function to show a message telling the player their guess is incorrect.</li>
+<li>Write the <code>showLoss</code> function to remove the form and show a message telling the player they lose.</li>
+</ul>
+
+
+
+<script>
+let targetNumber = Math.floor(Math.random() * 10) + 1;
+
+var form=document.getElementById("iptForm");
+var usript=document.getElementById("userInput");
+var btn=document.getElementById("btn");
+var msg=document.getElementById("para");
+var atmpt=document.getElementById("atmpt");
+var attempts=1;
+
+function init () {
+	btn.onclick=function(event) {
+  	event.preventDefault();
+    check(usript.value);  
+  }
+}
+
+function check(value) {
+  			atmpt.innerHTML="Attempts: "+attempts;
+        if (value == targetNumber) {
+            showWin();
+        } else {
+            attempts++;
+            if (attempts <= 5) {
+                showError();
+            } else {
+                showLoss();
+            }
+        }
+    }
+
+function showWin () {
+  msg.innerHTML="YOU WON";
+  form.style.display="none";
+}
+
+function showError () {
+  msg.innerHTML="Guess is incorrect";
+  msg.innerHTML+="<br>Attempts left: "+attemtpts;
+  attempts++;
+}
+
+function showLoss () {
+  msg.innerHTML="YOU LOSS";
+  msg.innerHTML += "<br/>" + "Target number is: " + targetNumber;
+  form.style.display="none";
+}
+
+init();
+</script>
+
+
+<style>
+body {
+  font-family: Helvetica;
+}
+</style>

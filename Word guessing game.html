@@ -1,0 +1,254 @@
+
+<html>
+<head>
+<title></title>
+<style>
+body {
+  font-family: Helvetica;
+}
+
+table {
+  border-collapse: collapse
+}
+
+table td, table th {
+  border: 1px solid black;
+  text-align: left;
+  padding: 1em;
+}
+
+form {
+  margin: 1em 0;
+}
+
+.letter {
+  display: inline-block;
+  border: 1px solid black;
+  padding: 1em 1.2em;
+  height: 1.2em;
+}
+</style>
+</head>
+<body>
+
+<p id="hint"> 
+Hint:The word is about true
+</p>
+<p id="test">
+  
+</p>
+<div id="word">
+
+
+</div>
+<br>
+<form id="iptForm">
+  <label>Enter your guess</label>
+  <input id="userInput" type="text" name="guess" onchange="listen()">
+  <button id="btn">Submit</button>
+</form>
+
+
+
+<table id="scoreboard">
+  <tbody>
+    <tr>
+      <th>Incorrect Guesses</th>
+      <td id="incorrect">&nbsp;</td>
+    </tr>
+    <tr>
+      <th>Guesses Remaining</th>
+      <td id="remains">&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+
+<p id="para">
+
+</p>
+<p id="percent">
+
+</p>
+
+<script>
+var msg = document.getElementById("para");
+var divElement = document.getElementById("word");
+var testpara = document.getElementById("test");
+var usript = document.getElementById("userInput");
+var btn = document.getElementById("btn");
+var msg = document.getElementById("para");
+var iptform = document.getElementById("iptForm");
+var table = document.getElementById("scoreboard");
+var per=document.getElementById("percent");
+var hint=document.getElementById("hint");
+
+var targetNumber = Math.floor(Math.random() *4);
+var wordArray=["javascript","sparrow","morning","correct"];
+var hintArray=["this is a programming language","this is about birds","this is a greeting","this is about true"];
+
+var targetWord=wordArray[targetNumber];
+var guess=targetWord.split('');
+
+var targetHint=hintArray[targetNumber];
+
+var totalguesses = 7;
+var attempts = 7;
+var incorrectGuess = 0;
+var target = targetWord;
+//var guess = ["c", "o", "r", "r","e","c","t"];
+var testArray = [];
+
+
+function chooseWord() {
+	hint.innerHTML="Hint: "+targetHint;
+  createWordTiles(guess);
+}
+
+function createWordTiles(word) {
+  //testpara.innerHTML = "chooseWord";
+  for (var letter of word) {
+    var newDiv = document.createElement("div");
+    newDiv.style.display = "inline-block";
+    newDiv.style = "border:1px solid black;width:20px;text-align:center;margin-left:2px;float:left";
+    var text = document.createTextNode("_ ");
+    newDiv.appendChild(text);
+    var element = document.getElementById("word");
+    element.appendChild(newDiv);
+
+  }
+}
+
+function testGuess(value) {
+
+  if (target.includes(value)) {
+    //testpara.innerHTML = "present";
+    for (var i = 0; i < guess.length; i++) {
+      if (value == guess[i]) {
+        //testpara.innerHTML = i + guess[i];
+        updateWordTiles(i, value);
+        var count = guess.length;
+        for (var j = 0; j < guess.length; j++) {
+          testArray[j] = divElement.childNodes[j + 1].innerHTML;
+        }
+        for (var k = 0; k < guess.length; k++) {
+          if (testArray[k] != guess[k]) {
+            count = 0;
+          }
+        }
+        if (count == guess.length) {
+          iptform.style.display = "none";
+          table.style.display = "none";
+          msg.innerHTML = "You Won the game";
+          updateScoreboard(attempts);
+        }
+      }
+
+    }
+  } else {
+    //testpara.innerHTML = "not present";
+    incorrectGuess++;
+    attempts--;
+    document.getElementById("incorrect").innerHTML = incorrectGuess;
+    document.getElementById("remains").innerHTML = attempts;
+  }
+  if (attempts == 0) {
+    iptform.style.display = "none";
+    table.style.display = "none";
+    spn.style.display="none";
+    msg.innerHTML = "You loss the game";
+    for(var l=0;l<guess.length;l++) {
+    	divElement.childNodes[l + 1].innerHTML=guess[l];
+    }
+
+  }
+}
+
+function updateScoreboard(guess) {
+  per.innerHTML = "Your Score: " +Math.round(guess * 100 / totalguesses)+"%";
+}
+
+function updateWordTiles(index, value) {
+  divElement.childNodes[index + 1].innerHTML = value;
+}
+
+
+function validate(value) {
+  if (value.length == 1) {
+    testpara.innerHTML = "";
+    testGuess(value);
+  } else {
+    testpara.innerHTML = "enter single letter";
+  }
+}
+
+function listen() {
+  btn.onclick = function (event) {
+    event.preventDefault();
+    validate(usript.value);
+  };
+}
+
+function init() {
+  chooseWord();
+  listen();
+}
+
+init();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--
+<span id="spn">
+<h1>Word-guessing game</h1>
+<p>This exercise creates a game that lets a player guess letters in a word. When the game starts, the <code>div#word</code>
+  should be populated with <code>div.letter</code> tiles, one for each letter in the target word. As a player makes
+  correct guesses, the tiles in the target word should be updated to show the correct guesses. As a player makes
+  incorrect guesses, the scoreboard should be updated to show each incorrect guess; also, the number of guesses
+  remaining should be decremented. After seven incorrect guesses, the player loses. The player wins by guessing all of
+  the letters in the word before running out of guesses.</p>
+<p>If you're just getting started with JavaScript and DOM manipulation, the instructions below will guide you. If
+  you're more experienced and interested in designing the overall solution from scratch, skip the directions below and
+  get started; you can delete all the function stubs in the JS, too.</p>
+<h2>Steps</h2>
+<ul>
+  <li>Write a function <code>chooseWord</code> that returns a random word from the <code>words</code> array.</li>
+  <li>Write a function <code>createWordTiles</code> that takes a string as its argument, creates the <code>div.letter</code>
+    tiles for each letter in the word, and places the tiles in <code>div#word</code>.</li>
+  <li>Write a function <code>validate</code> that takes a string as its argument, and returns <code>true</code> if the
+    guess is exactly one letter, and false otherwise.</li>
+  <li>Write a function <code>testGuess</code> that takes a single-letter string as its argument. If the letter is in
+    the target word, return an array containing the index (or indices) where the letter appears in the word. If the
+    letter is not in the target word, return an empty array.</li>
+  <li>Write a function <code>updateWordTiles</code> that takes an array of indices and updates the DOM to show the
+    letter tiles at the specified indices.</li>
+  <li>Write a function <code>updateScoreboard</code> that receives two arguments: the guess, and the number of
+    incorrect guesses so far; it should the Incorrect Guesses and Guesses Remaining portion of the scoreboard.</li>
+  <li>Write a function <code>listen</code> that listens for user input, then handles it using the functions you have
+    created.</li>
+  <li>Write a function <code>init</code> that uses the other functions you have created to set up and play the game.</li>
+</ul></span>-->
+</body>
+</html>
