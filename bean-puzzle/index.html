@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotating Magic Bean Puzzle</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Add an online favicon -->
+    <link rel="icon" href="https://example.com/favicon.ico" type="image/x-icon">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link href="styles.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Overlay HTML -->
+    <div id="overlay">
+        <div id="overlay-content">
+            <p style="text-align: center;">🎉Rotating Magic Bean Puzzle!</p>
+            <p>📚 Instructions:</p>
+            <p>✨ Use the arrow keys ⬆️⬇️➡️⬅️ or swipe gestures 👉👈 to move the balls.</p>
+            <p>✨ Align all the colored beads into one section to solve the puzzle 🔓. </p>
+            <div style="text-align: center;">
+                <button id="play-button">Play</button>
+            </div>
+        </div>
+    </div>
+
+    <h1 class="blinking-text" style="text-align: center;">Rotating Magic Bean Puzzle</h1>
+
+    <audio id="background-music">
+        <source src="https://www.bensound.com/bensound-music/bensound-sweet.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Mute button -->
+    <button id="mute-button" onclick="toggleMute()"><i id="mute-icon" class="fas fa-volume-mute"></i></button>
+
+    <div class="container">
+        <div class="toy">
+            <div class="toy-section">
+                <div class="grid-item" id="lp4">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item" id="lp3">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item" id="lp2">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item border-right" id="lp1">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item" id="lp5">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item border-top-left"></div>
+                <div class="grid-item border-top"></div>
+                <div class="grid-item border-top middle-parts border-left border-right" id="lm3">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item" id="lp6">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item border-left"></div>
+                <div class="grid-item"></div>
+                <div class="grid-item middle-parts border-left border-right" id="lm2">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item" id="lp7">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item border-bottom-left"></div>
+                <div class="grid-item border-bottom"></div>
+                <div class="grid-item border-bottom middle-parts border-left border-right" id="lm1">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item " id="lp8">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item" id="lp9">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item" id="lp10">
+                    <div class="ball orange"></div>
+                </div>
+                <div class="grid-item border-right" id="lp11">
+                    <div class="ball orange"></div>
+                </div>
+            </div>
+            <div class="toy-section">
+                <div class="grid-item border-left " id="rp1">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item" id="rp2">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item" id="rp3">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item" id="rp4">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item border-top" id="rm3"></div>
+                <div class="grid-item border-top"></div>
+                <div class="grid-item border-top-right"></div>
+                <div class="grid-item" id="rp5">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item" id="rm2"></div>
+                <div class="grid-item"></div>
+                <div class="grid-item border-right"></div>
+                <div class="grid-item" id="rp6">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item border-bottom" id="rm1"></div>
+                <div class="grid-item border-bottom"></div>
+                <div class="grid-item border-bottom-right"></div>
+                <div class="grid-item" id="rp7">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item border-left " id="rp11">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item" id="rp10">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item" id="rp9">
+                    <div class="ball green"></div>
+                </div>
+                <div class="grid-item" id="rp8">
+                    <div class="ball green"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Made with <span style="color: red">&hearts;</span> by John Kiran
+    </footer>
+
+    <script src="index.js"></script>
+</body>
+
+</html>
