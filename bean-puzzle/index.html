@@ -40,6 +40,15 @@
     <!-- Mute button -->
     <button id="mute-button" onclick="toggleMute()"><i id="mute-icon" class="fas fa-volume-mute"></i></button>
 
+    <!-- Overlay HTML -->
+    <div id="success-overlay">
+        <div id="success-dialog">
+            <span class="close-icon" onclick="document.getElementById('success-overlay').style.display='none'">&times;</span>
+            <div class="emoji">🎉</div>
+            <p>Congratulations! You Nailed it.</p>
+        </div>
+    </div>
+
     <div class="container">
         <div class="toy">
             <div class="toy-section">
