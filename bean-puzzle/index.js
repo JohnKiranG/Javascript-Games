@@ -109,15 +109,37 @@ function down() {
   populateAll();
 }
 
+function checkWin() {
+  if (
+    (arrLeft.join("") === "green".repeat(11) && arrRight.join("") === "orange".repeat(11))
+    || (arrLeft.join("") === "orange".repeat(11) && arrRight.join("") === "green".repeat(11))
+  ) {
+    $("#success-overlay").show();
+  }
+}
+
+function movePiece(action) {
+  if (action === "up") {
+    up();
+  } else if (action === "down") {
+    down();
+  } else if (action === "left") {
+    left();
+  } else if (action === "right") {
+    right();
+  }
+  checkWin();
+}
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "ArrowLeft") {
-    left();
+    movePiece("left");
   } else if (event.key === "ArrowRight") {
-    right();
+    movePiece("right");
   } else if (event.key === "ArrowUp") {
-    up();
+    movePiece("up");
   } else if (event.key === "ArrowDown") {
-    down();
+    movePiece("down");
   }
 });
 
@@ -133,15 +155,15 @@ function handleSwipe() {
   const swipeDistanceY = touchEndY - touchStartY;
 
   if (swipeDistanceX > minSwipeDistance) {
-    right();
+    movePiece("right");
   } else if (swipeDistanceX < -minSwipeDistance) {
-    left();
+    movePiece("left");
   }
 
   if (swipeDistanceY > minSwipeDistance) {
-    down();
+    movePiece("down");
   } else if (swipeDistanceY < -minSwipeDistance) {
-    up();
+    movePiece("up");
   }
 }
 
@@ -189,6 +211,7 @@ function randomize() {
 
 // Initial things
 $("#mute-button").hide();
+$("#success-overlay").hide();
 
 // Play background music
 function playMusic() {
