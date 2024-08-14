@@ -2,8 +2,29 @@ let arrLeft = Array(11).fill("orange");
 let arrCenter = Array(3).fill("orange");
 let arrRight = Array(11).fill("green");
 let centerArrPosition = "left";
+let gameStarted = false;
 
 const ballTemplate = `<div class="ball"></div>`;
+
+// Setting up level
+const levels = ["easy", "medium", "hard"];
+let currentLevelIndex = 0;
+
+const updateCarousel = () => {
+    levels.forEach((level, index) => {
+        document.getElementById(level).classList.toggle('active', index === currentLevelIndex);
+    });
+};
+
+document.getElementById('left-arrow').addEventListener('click', () => {
+    currentLevelIndex = (currentLevelIndex - 1 + levels.length) % levels.length;
+    updateCarousel();
+});
+
+document.getElementById('right-arrow').addEventListener('click', () => {
+    currentLevelIndex = (currentLevelIndex + 1) % levels.length;
+    updateCarousel();
+});
 
 function populateLeftContainer() {
   for (let i = 0; i < arrLeft.length; i++) {
@@ -115,10 +136,24 @@ function checkWin() {
     || (arrLeft.join("") === "orange".repeat(11) && arrRight.join("") === "green".repeat(11))
   ) {
     $("#success-overlay").show();
+    gameStarted = false;
   }
 }
 
+function restart() {
+  arrLeft = Array(11).fill("orange");
+  arrCenter = Array(3).fill("orange");
+  arrRight = Array(11).fill("green");
+  centerArrPosition = "left";
+  populateAll();
+  $("#success-overlay").hide();
+  $("#mute-button").hide();
+  $("#overlay").show();
+}
+
 function movePiece(action) {
+  if(!gameStarted) return;
+
   if (action === "up") {
     up();
   } else if (action === "down") {
@@ -188,6 +223,7 @@ document.addEventListener("touchend", (event) => {
 
 // Overlay functionality
 document.getElementById("play-button").addEventListener("click", function () {
+  gameStarted = true;
   document.getElementById("overlay").style.display = "none";
   randomize();
   playMusic();
@@ -195,7 +231,14 @@ document.getElementById("play-button").addEventListener("click", function () {
 
 // Randomize the puzzle
 function randomize() {
-  for (let i = 0; i < 200; i++) {
+  let shuffleCount = 100;
+  switch (currentLevelIndex) {
+    case 0: shuffleCount = 200; break;
+    case 1: shuffleCount = 500; break;
+    case 2: shuffleCount = 1000; break;
+  }
+
+  for (let i = 0; i < shuffleCount; i++) {
     let random = Math.floor(Math.random() * 4);
     if (random === 0) {
       up();

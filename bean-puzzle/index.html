@@ -24,6 +24,14 @@
             <p>📚 Instructions:</p>
             <p>✨ Use the arrow keys ⬆️⬇️➡️⬅️ or swipe gestures 👉👈 to move the balls.</p>
             <p>✨ Align all the colored beads into one section to solve the puzzle 🔓. </p>
+            <p>🧠 Difficulty: </p>
+            <div class="carousel">
+                <span class="arrow" id="left-arrow">&#9664;</span>
+                <div class="carousel-item active" id="easy">Easy</div>
+                <div class="carousel-item" id="medium">Medium</div>
+                <div class="carousel-item" id="hard">Hard</div>
+                <span class="arrow" id="right-arrow">&#9654;</span>
+            </div>
             <div style="text-align: center;">
                 <button id="play-button">Play</button>
             </div>
@@ -46,6 +54,7 @@
             <span class="close-icon" onclick="document.getElementById('success-overlay').style.display='none'">&times;</span>
             <div class="emoji"><img src="https://media1.tenor.com/images/31f7595f305fc864b76bf63dcdc71f55/tenor.gif?itemid=15937132" style="width: 160px;"></div>
             <p>Congratulations! You Nailed it.</p>
+            <button id="play-again-button" onclick="restart()"><i class="fas fa-redo"></i> Play Again</button>
         </div>
     </div>
 
