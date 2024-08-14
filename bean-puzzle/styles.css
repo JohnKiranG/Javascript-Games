@@ -219,3 +219,52 @@ footer {
 #success-dialog .emoji {
     font-size: 50px;
 }
+.carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.carousel-item {
+    display: none;
+    font-size: 0.75em;
+    padding: 10px 20px;
+    border-radius: 15px;
+}
+.carousel-item.active {
+    display: block;
+}
+.arrow {
+    cursor: pointer;
+    font-size: 1em;
+    margin: 0 20px;
+}
+#easy {
+    background-color: #4CAF50;
+    color: white;
+}
+#medium {
+    background-color: #f57f17;
+    color: white;
+}
+#hard {
+    background-color: #f44336;
+    color: white;
+}
+#play-again-button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 6px 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 12px;
+    color: black;
+}
+
+#play-again-button:hover {
+    background-color: #45a049;
+}
