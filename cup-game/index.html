@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cup Clash — The Sliding Cup Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #e8636a;
+    --pink-light: #f0888d;
+    --pink-dark: #c44a50;
+    --blue: #4a8fe8;
+    --blue-light: #6aaaf0;
+    --blue-dark: #2e6dbf;
+    --bg: #0f0e17;
+    --surface: #1a1826;
+    --board: #2a2640;
+    --cell: #221f35;
+    --cell-hover: #2e2a46;
+    --text: #fffffe;
+    --muted: #a7a9be;
+    --gold: #f5c842;
+    --shadow-pink: rgba(232, 99, 106, 0.4);
+    --shadow-blue: rgba(74, 143, 232, 0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 50%, rgba(232,99,106,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 85% 50%, rgba(74,143,232,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    animation: bgPulse 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes bgPulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+  }
+
+  /* Stars / particles */
+  .particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: twinkle var(--dur) ease-in-out var(--delay) infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.5); }
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .game-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    letter-spacing: 0.08em;
+    line-height: 1;
+    background: linear-gradient(90deg, var(--pink-light), var(--text), var(--blue-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.2));
+  }
+
+  .game-subtitle {
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── PLAYER LABELS ── */
+  .players-row {
+    display: flex;
+    justify-content: space-between;
+    width: min(820px, 95vw);
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .player-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 18px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+  }
+
+  .player-label.p1 {
+    background: rgba(232, 99, 106, 0.15);
+    border: 1.5px solid rgba(232, 99, 106, 0.4);
+    color: var(--pink-light);
+  }
+
+  .player-label.p2 {
+    background: rgba(74, 143, 232, 0.15);
+    border: 1.5px solid rgba(74, 143, 232, 0.4);
+    color: var(--blue-light);
+  }
+
+  .player-label.active-label {
+    box-shadow: 0 0 20px var(--glow);
+    transform: scale(1.05);
+  }
+
+  .player-label.p1.active-label { --glow: var(--shadow-pink); border-color: var(--pink); }
+  .player-label.p2.active-label { --glow: var(--shadow-blue); border-color: var(--blue); }
+
+  .turn-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    animation: dotPulse 1s ease-in-out infinite;
+  }
+
+  .p1 .turn-dot { background: var(--pink); }
+  .p2 .turn-dot { background: var(--blue); }
+
+  @keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.6); opacity: 0.7; }
+  }
+
+  /* ── BOARD ── */
+  .board-wrapper {
+    position: relative;
+    z-index: 10;
+  }
+
+  .board {
+    display: flex;
+    background: var(--board);
+    border-radius: 20px;
+    padding: 14px 14px 18px;
+    gap: 8px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 20px 60px rgba(0,0,0,0.6),
+      0 0 80px rgba(74,143,232,0.05),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    width: min(820px, 95vw);
+  }
+
+  .cell {
+    flex: 1;
+    aspect-ratio: 1 / 1.25;
+    background: var(--cell);
+    border-radius: 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    position: relative;
+    cursor: default;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    border: 1.5px solid rgba(255,255,255,0.04);
+    overflow: visible;
+  }
+
+  /* Cell number indicator */
+  .cell::before {
+    content: attr(data-index);
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.55rem;
+    color: rgba(255,255,255,0.15);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .cell.selectable {
+    cursor: pointer;
+    background: var(--cell-hover);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .cell.selectable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+
+  .cell.selected {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.3);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.15), inset 0 0 20px rgba(255,255,255,0.04);
+  }
+
+  .cell.valid-target {
+    cursor: pointer;
+    animation: targetPulse 1s ease-in-out infinite;
+  }
+
+  .cell.valid-target.p1-target {
+    border-color: rgba(232,99,106,0.6);
+    background: rgba(232,99,106,0.08);
+  }
+
+  .cell.valid-target.p2-target {
+    border-color: rgba(74,143,232,0.6);
+    background: rgba(74,143,232,0.08);
+  }
+
+  @keyframes targetPulse {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  /* Arrow in valid target cell */
+  .cell.valid-target::after {
+    content: '↓';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9rem;
+    opacity: 0.5;
+    animation: arrowBounce 1s ease-in-out infinite;
+  }
+
+  @keyframes arrowBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
+    50% { transform: translateX(-50%) translateY(3px); opacity: 0.8; }
+  }
+
+  /* ── CUP ── */
+  .cup {
+    width: 80%;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    transform-origin: bottom center;
+  }
+
+  .cup:hover { transform: scale(1.05) translateY(-3px); }
+
+  .cup-body {
+    width: 100%;
+    position: relative;
+  }
+
+  .cup-svg {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+    transition: filter 0.2s ease;
+  }
+
+  .cup.p1 .cup-svg {
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5)) drop-shadow(0 0 8px var(--shadow-pink));
+  }
+
+  .cup.p2 .cup-svg {
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5)) drop-shadow(0 0 8px var(--shadow-blue));
+  }
+
+  .cup.selected-cup {
+    transform: scale(1.1) translateY(-8px);
+  }
+
+  .cup.p1.selected-cup .cup-svg {
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 0 16px var(--shadow-pink));
+  }
+
+  .cup.p2.selected-cup .cup-svg {
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 0 16px var(--shadow-blue));
+  }
+
+  /* Cup move animation */
+  @keyframes cupLand {
+    0% { transform: scale(1.1) translateY(-30px); }
+    60% { transform: scale(0.95) translateY(4px); }
+    80% { transform: scale(1.03) translateY(-2px); }
+    100% { transform: scale(1) translateY(0); }
+  }
+
+  .cup.landing {
+    animation: cupLand 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .status-msg {
+    font-size: 0.85rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-align: center;
+    min-height: 1.4em;
+    transition: all 0.3s ease;
+  }
+
+  .status-msg.highlight {
+    color: var(--text);
+  }
+
+  /* ── MOVES COUNTER ── */
+  .moves-row {
+    display: flex;
+    gap: 32px;
+    margin-top: 16px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .move-counter {
+    text-align: center;
+  }
+
+  .move-counter .count {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .move-counter.p1 .count { color: var(--pink-light); }
+  .move-counter.p2 .count { color: var(--blue-light); }
+
+  .move-counter .label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .btn {
+    padding: 10px 24px;
+    border-radius: 40px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--pink), var(--blue));
+    color: white;
+    box-shadow: 0 4px 20px rgba(74,143,232,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(74,143,232,0.4);
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    border: 1.5px solid rgba(255,255,255,0.1);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+  }
+
+  /* ── RULES PANEL ── */
+  .rules {
+    margin-top: 20px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: min(820px, 95vw);
+    position: relative;
+    z-index: 10;
+    display: none;
+  }
+
+  .rules.visible { display: block; }
+  .rules strong { color: var(--text); }
+
+  /* ── WIN OVERLAY ── */
+  .win-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .win-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .win-card {
+    background: var(--surface);
+    border-radius: 24px;
+    padding: 48px 56px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    transform: scale(0.8) translateY(30px);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 400px;
+  }
+
+  .win-overlay.show .win-card {
+    transform: scale(1) translateY(0);
+  }
+
+  .win-trophy {
+    font-size: 4rem;
+    margin-bottom: 12px;
+    animation: trophySpin 2s ease-in-out infinite;
+  }
+
+  @keyframes trophySpin {
+    0%, 100% { transform: rotate(-5deg) scale(1); }
+    50% { transform: rotate(5deg) scale(1.1); }
+  }
+
+  .win-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .win-title.p1-wins { color: var(--pink-light); }
+  .win-title.p2-wins { color: var(--blue-light); }
+
+  .win-subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 28px;
+  }
+
+  .win-stats {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .win-stat {
+    text-align: center;
+  }
+
+  .win-stat .n {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--gold);
+  }
+
+  .win-stat .l {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 8px; height: 8px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 99;
+    border-radius: 2px;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Win overlay -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-card">
+    <div class="win-trophy">🏆</div>
+    <div class="win-title" id="winTitle"></div>
+    <div class="win-subtitle" id="winSubtitle"></div>
+    <div class="win-stats">
+      <div class="win-stat">
+        <div class="n" id="winMoves">0</div>
+        <div class="l">Total Moves</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
+  </div>
+</div>
+
+<header>
+  <div class="game-title">Cup Clash</div>
+  <div class="game-subtitle">The Sliding Cup Challenge</div>
+</header>
+
+<div class="players-row">
+  <div class="player-label p1 active-label" id="p1Label">
+    <div class="turn-dot"></div>
+    Player 1
+  </div>
+  <div class="player-label p2" id="p2Label">
+    <div class="turn-dot"></div>
+    Player 2
+  </div>
+</div>
+
+<div class="board-wrapper">
+  <div class="board" id="board"></div>
+</div>
+
+<div class="status-bar">
+  <div class="status-msg" id="statusMsg">Select a cup to move</div>
+</div>
+
+<div class="moves-row">
+  <div class="move-counter p1">
+    <div class="count" id="p1Moves">0</div>
+    <div class="label">P1 Moves</div>
+  </div>
+  <div class="move-counter p2">
+    <div class="count" id="p2Moves">0</div>
+    <div class="label">P2 Moves</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-primary" onclick="resetGame()">↺ Restart</button>
+  <button class="btn btn-secondary" onclick="undoMove()">↩ Undo</button>
+  <button class="btn btn-secondary" onclick="toggleRules()">? Rules</button>
+</div>
+
+<div class="rules" id="rulesPanel">
+  <strong>How to Play:</strong><br>
+  🩷 <strong>Player 1</strong> (Pink cups, left side) moves <strong>right →</strong><br>
+  💙 <strong>Player 2</strong> (Blue cups, right side) moves <strong>left ←</strong><br>
+  <br>
+  <strong>Rules:</strong><br>
+  • A cup can slide into an adjacent <strong>empty cell</strong><br>
+  • A cup can <strong>jump over exactly one</strong> opposing cup into an empty cell<br>
+  • You cannot jump over 2+ cups or your own cups<br>
+  • Only <strong>one move</strong> per turn<br>
+  • <strong>First to get all 3 cups to the other side wins!</strong>
+</div>
+
+<script>
+// ── STATE ──
+const CELLS = 8;
+let board = []; // 'p1', 'p2', or null
+let currentPlayer = 'p1';
+let selectedCell = -1;
+let moves = { p1: 0, p2: 0 };
+let history = [];
+let gameOver = false;
+
+// ── INIT ──
+function initBoard() {
+  board = Array(CELLS).fill(null);
+  // P1 cups in cells 0,1,2
+  board[0] = 'p1'; board[1] = 'p1'; board[2] = 'p1';
+  // P2 cups in cells 5,6,7
+  board[5] = 'p2'; board[6] = 'p2'; board[7] = 'p2';
+}
+
+// ── VALID MOVES ──
+function getValidMoves(fromIdx) {
+  const cup = board[fromIdx];
+  if (!cup) return [];
+
+  const directions = [-1, 1]; // ✅ allow both left & right
+  const moves = [];
+
+  directions.forEach(dir => {
+    // Slide
+    const slide = fromIdx + dir;
+    if (slide >= 0 && slide < CELLS && !board[slide]) {
+      moves.push(slide);
+    }
+
+    // Jump
+    const over = fromIdx + dir;
+    const jump = fromIdx + dir * 2;
+
+    if (
+      jump >= 0 && jump < CELLS &&
+      board[over] && board[over] !== cup &&
+      !board[jump]
+    ) {
+      moves.push(jump);
+    }
+  });
+
+  return moves;
+}
+
+function hasAnyMove(player) {
+  for (let i = 0; i < CELLS; i++) {
+    if (board[i] === player && getValidMoves(i).length > 0) return true;
+  }
+  return false;
+}
+
+// function getBoardStateKey() {
+//   return board.join(',') + '|' + currentPlayer;
+// }
+
+function isDraw() {
+  return !hasAnyMove('p1') && !hasAnyMove('p2');
+}
+
+// ── WIN CHECK ──
+function checkWin() {
+  // P1 wins: cups in last 3 cells (5,6,7 or any 3 on right, but check their cups crossed to p2 start)
+  // Actually: p1 wins when all 3 p1 cups are in cells 5,6,7
+  //           p2 wins when all 3 p2 cups are in cells 0,1,2
+  const p1Cups = board.map((c,i) => c === 'p1' ? i : -1).filter(i => i >= 0);
+  const p2Cups = board.map((c,i) => c === 'p2' ? i : -1).filter(i => i >= 0);
+
+  // P1 started at 0,1,2 and wants to reach rightmost 3 slots among non-own starting area
+  // Win condition: all p1 cups are in indices >= 5
+  if (p1Cups.every(i => i >= 5)) return 'p1';
+  if (p2Cups.every(i => i <= 2)) return 'p2';
+  return null;
+}
+
+// ── RENDER ──
+function render() {
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+
+  const validTargets = selectedCell >= 0 ? getValidMoves(selectedCell) : [];
+
+  for (let i = 0; i < CELLS; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.index = i + 1;
+
+    const cup = board[i];
+
+    // Selected cell
+    if (i === selectedCell) {
+      cell.classList.add('selected');
+    }
+
+    // Valid move target
+    if (validTargets.includes(i)) {
+      cell.classList.add('valid-target');
+      cell.classList.add(currentPlayer === 'p1' ? 'p1-target' : 'p2-target');
+      cell.addEventListener('click', () => executeMove(selectedCell, i));
+    }
+
+    // Cup in this cell
+    if (cup) {
+      const isCurrentPlayer = cup === currentPlayer;
+      const isSelectable = isCurrentPlayer && selectedCell < 0 && !gameOver;
+      const isSelected = i === selectedCell;
+
+      if (isSelectable) cell.classList.add('selectable');
+
+      const cupEl = createCupEl(cup, isSelected, isSelectable);
+      cell.appendChild(cupEl);
+
+      if (isSelectable || isSelected) {
+        cell.addEventListener('click', () => handleCellClick(i));
+      }
+    } else if (selectedCell < 0 && !gameOver) {
+      // Empty cell clickable only as target
+    }
+
+    boardEl.appendChild(cell);
+  }
+
+  // Update labels
+  document.getElementById('p1Label').classList.toggle('active-label', currentPlayer === 'p1');
+  document.getElementById('p2Label').classList.toggle('active-label', currentPlayer === 'p2');
+  document.getElementById('p1Moves').textContent = moves.p1;
+  document.getElementById('p2Moves').textContent = moves.p2;
+}
+
+function createCupEl(player, selected, selectable) {
+  const wrapper = document.createElement('div');
+  wrapper.className = `cup ${player}${selected ? ' selected-cup' : ''}`;
+
+  const color1 = player === 'p1' ? '#e8636a' : '#4a8fe8';
+  const color2 = player === 'p1' ? '#c44a50' : '#2e6dbf';
+  const highlight = player === 'p1' ? '#f5989d' : '#7ab8f5';
+  const rim = player === 'p1' ? '#d45a60' : '#3a7fd4';
+
+  wrapper.innerHTML = `
+    <svg class="cup-svg" viewBox="0 0 60 72" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="cupGrad${player}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${highlight}"/>
+          <stop offset="40%" style="stop-color:${color1}"/>
+          <stop offset="100%" style="stop-color:${color2}"/>
+        </linearGradient>
+        <linearGradient id="rimGrad${player}" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:${highlight}"/>
+          <stop offset="100%" style="stop-color:${color2}"/>
+        </linearGradient>
+        <filter id="innerShadow${player}">
+          <feDropShadow dx="-2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+        </filter>
+      </defs>
+      <!-- Cup body trapezoid -->
+      <path d="M8,12 L52,12 L46,66 L14,66 Z" fill="url(#cupGrad${player})" rx="3"/>
+      <!-- Rim -->
+      <rect x="5" y="6" width="50" height="10" rx="5" fill="url(#rimGrad${player})"/>
+      <!-- Rim top highlight -->
+      <rect x="7" y="6" width="46" height="3" rx="2" fill="${highlight}" opacity="0.5"/>
+      <!-- Inside rim (dark) -->
+      <ellipse cx="30" cy="16" rx="22" ry="5" fill="rgba(0,0,0,0.35)"/>
+      <!-- Side shine -->
+      <path d="M13,18 L17,60" stroke="${highlight}" stroke-width="2.5" stroke-linecap="round" opacity="0.35"/>
+      <!-- Bottom shine -->
+      <path d="M19,62 L41,62" stroke="${highlight}" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+    </svg>
+  `;
+
+  return wrapper;
+}
+
+// ── INTERACTIONS ──
+function handleCellClick(idx) {
+  if (gameOver) return;
+
+  if (selectedCell === idx) {
+    // Deselect
+    selectedCell = -1;
+    setStatus('Select a cup to move');
+    render();
+    return;
+  }
+
+  if (board[idx] === currentPlayer) {
+    // Select this cup
+    selectedCell = idx;
+    const vm = getValidMoves(idx);
+    if (vm.length === 0) {
+      setStatus('⚠️ This cup has no valid moves!', true);
+    } else {
+      setStatus(`${vm.length} move${vm.length > 1 ? 's' : ''} available — click a highlighted cell`, true);
+    }
+    render();
+  }
+}
+
+function executeMove(from, to) {
+  if (gameOver) return;
+
+  // Save state
+  history.push({
+    board: [...board],
+    currentPlayer,
+    moves: { ...moves },
+    selectedCell
+  });
+
+  // Move
+  board[to] = board[from];
+  board[from] = null;
+  moves[currentPlayer]++;
+  selectedCell = -1;
+
+  // Check win
+  const winner = checkWin();
+  if (winner) {
+    render();
+    triggerWin(winner);
+    return;
+  }
+
+  // ✅ DRAW: No moves for both players
+  if (isDraw()) {
+    gameOver = true;
+    setStatus("🤝 Draw! No moves for both players.", true);
+    return;
+  }
+
+  // Check deadlock
+  const next = currentPlayer === 'p1' ? 'p2' : 'p1';
+  currentPlayer = next;
+
+  if (!hasAnyMove(currentPlayer)) {
+    // Skip turn if no moves
+    currentPlayer = currentPlayer === 'p1' ? 'p2' : 'p1';
+    setStatus(`⚠️ ${currentPlayer === 'p1' ? 'Player 2' : 'Player 1'} has no moves — turn skipped!`, true);
+  } else {
+    setStatus(`${currentPlayer === 'p1' ? '🩷 Player 1' : '💙 Player 2'}'s turn — select a cup`);
+  }
+
+  render();
+
+  // Landing animation on the cup that just arrived
+  setTimeout(() => {
+    const boardEl = document.getElementById('board');
+    const cells = boardEl.querySelectorAll('.cell');
+    const targetCell = cells[to];
+    const cup = targetCell?.querySelector('.cup');
+    if (cup) {
+      cup.classList.add('landing');
+      setTimeout(() => cup.classList.remove('landing'), 400);
+    }
+  }, 10);
+}
+
+function undoMove() {
+  if (history.length === 0) return;
+  const prev = history.pop();
+  board = prev.board;
+  currentPlayer = prev.currentPlayer;
+  moves = prev.moves;
+  selectedCell = -1;
+  gameOver = false;
+  setStatus('↩ Move undone');
+  render();
+}
+
+function setStatus(msg, highlight = false) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.classList.toggle('highlight', highlight);
+}
+
+// ── WIN ──
+function triggerWin(winner) {
+  gameOver = true;
+  const totalMoves = moves.p1 + moves.p2;
+
+  const overlay = document.getElementById('winOverlay');
+  const title = document.getElementById('winTitle');
+  const subtitle = document.getElementById('winSubtitle');
+
+  title.textContent = winner === 'p1' ? 'Player 1 Wins!' : 'Player 2 Wins!';
+  title.className = `win-title ${winner}-wins`;
+  subtitle.textContent = winner === 'p1'
+    ? '🩷 The Pink Cups conquered the right side!'
+    : '💙 The Blue Cups claimed the left side!';
+  document.getElementById('winMoves').textContent = totalMoves;
+
+  overlay.classList.add('show');
+  spawnConfetti(winner);
+}
+
+function spawnConfetti(winner) {
+  const colors = winner === 'p1'
+    ? ['#e8636a','#f5989d','#c44a50','#fff']
+    : ['#4a8fe8','#7ab8f5','#2e6dbf','#fff'];
+
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `
+      left: ${Math.random() * 100}vw;
+      top: -10px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      transform: rotate(${Math.random() * 360}deg);
+      animation: confettiFall ${1.5 + Math.random() * 2}s ease-in ${Math.random() * 0.8}s forwards;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+}
+
+// ── RESET ──
+function resetGame() {
+  document.getElementById('winOverlay').classList.remove('show');
+  initBoard();
+  currentPlayer = 'p1';
+  selectedCell = -1;
+  moves = { p1: 0, p2: 0 };
+  history = [];
+  gameOver = false;
+
+  // ✅ Reset draw tracking
+  // seenStates = new Set();
+  // seenStates.add(getBoardStateKey());
+
+  setStatus('🩷 Player 1 starts — select a Pink cup');
+  render();
+}
+
+function toggleRules() {
+  const panel = document.getElementById('rulesPanel');
+  panel.classList.toggle('visible');
+}
+
+// ── PARTICLES ──
+function initParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `
+      left: ${Math.random() * 100}%;
+      top: ${Math.random() * 100}%;
+      --dur: ${2 + Math.random() * 4}s;
+      --delay: ${Math.random() * 4}s;
+    `;
+    container.appendChild(p);
+  }
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { selectedCell = -1; render(); setStatus('Selection cleared'); }
+  if (e.key === 'z' && (e.ctrlKey || e.metaKey)) undoMove();
+});
+
+// ── START ──
+initParticles();
+resetGame();
+</script>
+</body>
+</html>
